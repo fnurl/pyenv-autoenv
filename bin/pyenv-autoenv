@@ -1,10 +1,9 @@
-#!/bin/bash
-# virtualenv-auto-activate.sh
+# pyenv-autoenv
 #
 # Installation:
-#   Add this line to your .bashrc or .bash-profile:
+#   Add this line to your .bashrc / .zshrc / .zshenv
 #
-#       source /path/to/virtualenv-auto-activate.sh
+#   source ~/.pyenv/plugins/pyenv-autoenv/bin/pyenv-autoenv
 #
 
 function _python_version_auto_install() {
@@ -35,26 +34,32 @@ function _virtualenv_auto_activate() {
           if [ -d "$_VENV_PATH" ];then
             workon $_VENV_NAME
           else
-            echo "Virtualenv $_VENV_NAME does not exist. Adding with current python -> $(cat .python-version)"
-            mkvirtualenv $_VENV_NAME --python $PYENV_ROOT/versions/$(cat .python-version)/bin/python
-            workon $_VENV_NAME
+            #echo "Virtualenv $_VENV_NAME does not exist. Adding with current python -> $(cat .python-version)"
+            echo "Virtualenv $_VENV_NAME does not exist."
+            #mkvirtualenv $_VENV_NAME --python $PYENV_ROOT/versions/$(cat .python-version)/bin/python
+            #workon $_VENV_NAME
           fi
           # echo Activated virtualenv \"$_VENV_NAME\".
         fi
     fi
 }
 
-function _autoenv_activate() {
-    _python_version_auto_install
-    _virtualenv_auto_activate
+function _env_auto_source() {
+    if [ -f ".env" ]; then
+        source .env
+    else
+        return
+    fi
 }
 
-if [[ $PROMPT_COMMAND =~ ^.*\;[[:space:]$'\n'$'\r']*$ ]]; then
-    export PROMPT_COMMAND="${PROMPT_COMMAND%;*}"
-fi
-export PROMPT_COMMAND="$([[ $PROMPT_COMMAND ]] && echo "${PROMPT_COMMAND}; ")_autoenv_activate"
+function _autoenv_activate() {
+    #_python_version_auto_install
+    _virtualenv_auto_activate
+    _env_auto_source
+}
+
 if [ -n "$ZSH_VERSION" ]; then
-  function chpwd() {
+    chpwd_functions+=(_autoenv_activate)
+    export $chpwd_functions
     _autoenv_activate
-  }
 fi
